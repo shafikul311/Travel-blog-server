@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3080;
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -70,62 +70,58 @@ client.connect((err) => {
       email: req.body.email,
       password: hashedPass,
     };
-   
     usersCollection.insertOne(newUser).then((result) => {
       console.log(result);
       res.send(result.insertedCount > 0);
     });
   });
 
-      
-app.delete('/delete/:id',(req ,res) =>{
-  const id = ObjectID(req.params.id)
-  blogCollection.findOneAndDelete({_id:id})
-  .then(result =>{
-    // console.log( result )
-    res.send(result.value)
-    
-  })
-
-})
-
+  app.delete("/delete/:id", (req, res) => {
+    const id = ObjectID(req.params.id);
+    blogCollection.findOneAndDelete({ _id: id }).then((result) => {
+      // console.log( result )
+      res.send(result.value);
+    });
+  });
 
   app.post("/login", (req, res) => {
-   usersCollection.find({ email:req.body.email }).toArray((err, documents) => {
-     bcrypt.compare(req.body.password, documents[0].password).then(data => {
-      //  console.log(data)
-      //  console.log(documents)
-      if(data){
-        adminCollection.find({email: req.body.email}).toArray((err, doc) => {
-          console.log(doc)
-          if(documents[0].email===doc[0]?.email){
-            const userInfo= {
-              name:documents[0].name,
-              email:documents[0].email,
-              isAdmin: true,
-              
-            }
-            res.send(userInfo)
-          }else{
-
-            const userInfo= {
-              name:documents[0].name,
-              email:documents[0].email,
-              isAdmin: false,
-              
-            }
-            res.send(userInfo)
-
-          }
-        })
-      }else{
-        res.send("auth error")
-      }
-     })
-     
-   })
- 
-  })
+    usersCollection
+      .find({ email: req.body.email })
+      .toArray((err, documents) => {
+        if (documents.length>0) {
+          bcrypt
+            .compare(req.body.password, documents[0].password)
+            .then((data) => {
+              //  console.log(data)
+              //  console.log(documents)
+              if (data) {
+                adminCollection
+                  .find({ email: req.body.email })
+                  .toArray((err, doc) => {
+                    console.log(doc);
+                    if (documents[0].email === doc[0]?.email) {
+                      const userInfo = {
+                        name: documents[0].name,
+                        email: documents[0].email,
+                        isAdmin: true,
+                      };
+                      res.send(userInfo);
+                    } else {
+                      const userInfo = {
+                        name: documents[0].name,
+                        email: documents[0].email,
+                        isAdmin: false,
+                      };
+                      res.send(userInfo);
+                    }
+                  });
+              } else {
+                res.send("auth error");
+              }
+            });
+        }
+      });
+  });
 
   // client.close();
 });
