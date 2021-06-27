@@ -9,15 +9,15 @@ const ObjectID = require("mongodb").ObjectID;
 require("dotenv").config();
 app.use(cors());
 app.use(express.json());
-// console.log(process.env.DB_USER)
 
 const { MongoClient } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ywwhy.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
-// console.log(uri)
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+
 client.connect((err) => {
   const blogCollection = client.db(`${process.env.DB_NAME}`).collection("post");
   const adminCollection = client
@@ -26,6 +26,8 @@ client.connect((err) => {
   const usersCollection = client
     .db(`${process.env.DB_NAME}`)
     .collection("users");
+
+
 
   // ------------------------------------
   app.post("/post", (req, res) => {
@@ -36,6 +38,9 @@ client.connect((err) => {
       res.send(result.insertedCount > 0);
     });
   });
+
+
+
   app.post("/admin", (req, res) => {
     const admin = req.body;
     // console.log(newPost)
@@ -45,22 +50,24 @@ client.connect((err) => {
     });
   });
 
+
+
   app.get("/post", (req, res) => {
     blogCollection.find().toArray((err, document) => {
       res.send(document);
     });
   });
 
+
   app.get("/post/:id", (req, res) => {
     const id = ObjectID(req.params.id);
-    // console.log(id)
     blogCollection.find({ _id: id }).toArray((err, document) => {
       res.send(document);
     });
   });
 
   // --------------------------------------------
-
+// user post
   app.post("/users", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(req.body.password, salt);
@@ -76,13 +83,17 @@ client.connect((err) => {
     });
   });
 
+
+  // delete
   app.delete("/delete/:id", (req, res) => {
     const id = ObjectID(req.params.id);
     blogCollection.findOneAndDelete({ _id: id }).then((result) => {
-      // console.log( result )
       res.send(result.value);
     });
   });
+
+
+// Login route
 
   app.post("/login", (req, res) => {
     usersCollection
@@ -92,8 +103,6 @@ client.connect((err) => {
           bcrypt
             .compare(req.body.password, documents[0].password)
             .then((data) => {
-              //  console.log(data)
-              //  console.log(documents)
               if (data) {
                 adminCollection
                   .find({ email: req.body.email })
