@@ -77,11 +77,22 @@ client.connect((err) => {
     });
   });
 
+      
+app.delete('/delete/:id',(req ,res) =>{
+  const id = ObjectID(req.params.id)
+  blogCollection.findOneAndDelete({_id:id})
+  .then(result =>{
+    // console.log( result )
+    res.send(result.value)
+    
+  })
+
+})
+
 
   app.post("/login", (req, res) => {
    usersCollection.find({ email:req.body.email }).toArray((err, documents) => {
      bcrypt.compare(req.body.password, documents[0].password).then(data => {
-     
       //  console.log(data)
       //  console.log(documents)
       if(data){
